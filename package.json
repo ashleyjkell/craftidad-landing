@@ -1,0 +1,19 @@
+{
+  "name": "link-sharing-page",
+  "version": "1.0.0",
+  "description": "A customizable link-sharing landing page with admin panel",
+  "main": "server/index.js",
+  "scripts": {
+    "setup": "node setup.js",
+    "start": "node server/index.js",
+    "dev": "node server/index.js"
+  },
+  "keywords": ["links", "landing-page", "social-media"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "bcrypt": "^5.1.1"
+  }
+}

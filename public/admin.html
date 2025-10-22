@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Link Sharing</title>
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+    <div class="admin-container">
+        <header class="admin-header">
+            <h1>Admin Panel</h1>
+            <button id="logout-btn" class="logout-btn">Logout</button>
+        </header>
+
+        <main class="admin-main">
+            <!-- Link Management Section -->
+            <section class="admin-section link-management">
+                <h2>Link Management</h2>
+                
+                <!-- Add/Edit Link Form -->
+                <div class="link-form-container">
+                    <h3 id="form-title">Add New Link</h3>
+                    <form id="link-form">
+                        <input type="hidden" id="link-id" name="linkId">
+                        
+                        <div class="form-group">
+                            <label for="link-label">Label *</label>
+                            <input type="text" id="link-label" name="label" required placeholder="e.g., Instagram, Portfolio">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="link-url">URL *</label>
+                            <input type="url" id="link-url" name="url" required placeholder="https://example.com">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="link-image">Button Image URL (optional)</label>
+                            <input type="url" id="link-image" name="imageUrl" placeholder="https://example.com/icon.png">
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" id="submit-btn" class="btn btn-primary">Add Link</button>
+                            <button type="button" id="cancel-btn" class="btn btn-secondary" style="display: none;">Cancel</button>
+                        </div>
+                    </form>
+                    <div id="link-form-message" class="message"></div>
+                </div>
+
+                <!-- Existing Links List -->
+                <div class="links-list-container">
+                    <h3>Your Links</h3>
+                    <div id="links-list" class="links-list">
+                        <!-- Links will be dynamically inserted here -->
+                    </div>
+                    <div id="links-message" class="message"></div>
+                </div>
+            </section>
+
+            <!-- Theme Customization Section -->
+            <section class="admin-section theme-customization">
+                <h2>Theme Customization</h2>
+                
+                <form id="theme-form">
+                    <div class="form-group">
+                        <label for="background-color">Background Color</label>
+                        <div class="color-input-group">
+                            <input type="color" id="background-color" name="backgroundColor">
+                            <input type="text" id="background-color-text" placeholder="#ffffff" maxlength="7">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="background-image">Background Image URL (optional)</label>
+                        <input type="url" id="background-image" name="backgroundImageUrl" placeholder="https://example.com/background.jpg">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="text-color">Text Color</label>
+                        <div class="color-input-group">
+                            <input type="color" id="text-color" name="textColor">
+                            <input type="text" id="text-color-text" placeholder="#000000" maxlength="7">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="button-color">Link Button Color</label>
+                        <div class="color-input-group">
+                            <input type="color" id="button-color" name="buttonColor">
+                            <input type="text" id="button-color-text" placeholder="#007bff" maxlength="7">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="button-text-color">Link Button Text Color</label>
+                        <div class="color-input-group">
+                            <input type="color" id="button-text-color" name="buttonTextColor">
+                            <input type="text" id="button-text-color-text" placeholder="#ffffff" maxlength="7">
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Save Theme</button>
+                    </div>
+                </form>
+                <div id="theme-message" class="message"></div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/js/admin.js"></script>
+</body>
+</html>

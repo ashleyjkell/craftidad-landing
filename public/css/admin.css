@@ -1,0 +1,484 @@
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: #f5f5f5;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* Admin Container */
+.admin-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+.admin-header {
+    background-color: #2c3e50;
+    color: white;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.admin-header h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.logout-btn {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 0.5rem 1.25rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease;
+}
+
+.logout-btn:hover:not(:disabled) {
+    background-color: #c0392b;
+}
+
+.logout-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Main Content */
+.admin-main {
+    flex: 1;
+    padding: 2rem;
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+/* Admin Sections */
+.admin-section {
+    background-color: white;
+    border-radius: 8px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.admin-section h2 {
+    font-size: 1.75rem;
+    margin-bottom: 1.5rem;
+    color: #2c3e50;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 0.5rem;
+}
+
+.admin-section h3 {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+    color: #34495e;
+}
+
+/* Form Styles */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+.form-group input[type="text"],
+.form-group input[type="url"],
+.form-group input[type="color"] {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.2s ease;
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="url"]:focus,
+.form-group input[type="color"]:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+/* Color Input Group */
+.color-input-group {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.color-input-group input[type="color"] {
+    width: 60px;
+    height: 45px;
+    padding: 0.25rem;
+    cursor: pointer;
+    border: 1px solid #ddd;
+}
+
+.color-input-group input[type="text"] {
+    flex: 1;
+}
+
+/* Buttons */
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.btn:focus {
+    outline: 2px solid #3498db;
+    outline-offset: 2px;
+}
+
+.btn-primary {
+    background-color: #3498db;
+    color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background-color: #2980b9;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.btn-primary:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.btn-primary:focus {
+    outline-color: #2980b9;
+}
+
+.btn-secondary {
+    background-color: #95a5a6;
+    color: white;
+    margin-left: 0.5rem;
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background-color: #7f8c8d;
+}
+
+.btn-secondary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-danger {
+    background-color: #e74c3c;
+    color: white;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+}
+
+.btn-danger:hover:not(:disabled) {
+    background-color: #c0392b;
+}
+
+.btn-danger:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-edit {
+    background-color: #f39c12;
+    color: white;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    margin-right: 0.5rem;
+}
+
+.btn-edit:hover:not(:disabled) {
+    background-color: #e67e22;
+}
+
+.btn-edit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Form Actions */
+.form-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+}
+
+/* Messages */
+.message {
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: 4px;
+    display: none;
+}
+
+.message.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    display: block;
+}
+
+.message.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    display: block;
+}
+
+/* Links List */
+.links-list-container {
+    margin-top: 2rem;
+}
+
+.links-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.link-item {
+    background-color: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 6px;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.link-item:hover {
+    border-color: #3498db;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.link-info {
+    flex: 1;
+}
+
+.link-label {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.25rem;
+    font-size: 1.1rem;
+}
+
+.link-url {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    word-break: break-all;
+    margin-bottom: 0.25rem;
+}
+
+.link-image-url {
+    font-size: 0.85rem;
+    color: #95a5a6;
+    margin-bottom: 0.25rem;
+}
+
+.link-status {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 3px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.link-status.active {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.link-status.inactive {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.link-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-left: 1rem;
+}
+
+.btn-small {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+}
+
+/* Drag Handle */
+.drag-handle {
+    cursor: grab;
+    color: #95a5a6;
+    margin-right: 1rem;
+    font-size: 1.5rem;
+    user-select: none;
+    padding: 0.5rem;
+    transition: color 0.2s ease;
+    line-height: 1;
+}
+
+.drag-handle:hover {
+    color: #3498db;
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+/* Drag and Drop Visual Feedback */
+.link-item.dragging {
+    opacity: 0.4;
+    transform: scale(0.95);
+    cursor: grabbing;
+    border-color: #3498db;
+}
+
+.link-item.drag-over {
+    border-color: #3498db;
+    border-style: dashed;
+    background-color: #ebf5fb;
+    transform: scale(1.02);
+}
+
+/* Empty State */
+.no-links {
+    text-align: center;
+    padding: 2rem;
+    color: #95a5a6;
+    font-style: italic;
+}
+
+/* Loading State */
+.loading-state {
+    text-align: center;
+    padding: 2rem;
+    color: #7f8c8d;
+    font-style: italic;
+}
+
+/* Error State */
+.error-state {
+    text-align: center;
+    padding: 2rem;
+    color: #e74c3c;
+    background-color: #fadbd8;
+    border-radius: 4px;
+}
+
+/* Responsive Design - Tablet */
+@media (max-width: 768px) {
+    .admin-header {
+        padding: 1rem;
+    }
+
+    .admin-header h1 {
+        font-size: 1.25rem;
+    }
+
+    .admin-main {
+        padding: 1rem;
+    }
+
+    .admin-section {
+        padding: 1.5rem;
+    }
+
+    .admin-section h2 {
+        font-size: 1.5rem;
+    }
+
+    .link-item {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .drag-handle {
+        order: -1;
+    }
+
+    .link-info {
+        flex: 1 1 100%;
+        order: 0;
+    }
+
+    .link-actions {
+        width: 100%;
+        justify-content: flex-end;
+        margin-left: 0;
+        order: 1;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .btn-secondary {
+        margin-left: 0;
+    }
+}
+
+/* Responsive Design - Mobile */
+@media (max-width: 480px) {
+    .admin-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .logout-btn {
+        width: 100%;
+    }
+
+    .color-input-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .color-input-group input[type="color"] {
+        width: 100%;
+    }
+
+    .link-actions {
+        flex-direction: column;
+    }
+
+    .btn-edit {
+        margin-right: 0;
+        margin-bottom: 0.5rem;
+    }
+
+    .drag-handle {
+        font-size: 1.25rem;
+        padding: 0.25rem;
+    }
+}

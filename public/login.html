@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Admin login">
+    <title>Admin Login</title>
+    <link rel="stylesheet" href="/css/login.css">
+</head>
+<body>
+    <main class="login-container">
+        <div class="login-card">
+            <h1 class="login-title">Admin Login</h1>
+            
+            <form id="login-form" class="login-form" novalidate>
+                <div class="form-group">
+                    <label for="username" class="form-label">Username</label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        name="username" 
+                        class="form-input" 
+                        required 
+                        autocomplete="username"
+                        aria-required="true"
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        class="form-input" 
+                        required 
+                        autocomplete="current-password"
+                        aria-required="true"
+                    >
+                </div>
+                
+                <div id="error-message" class="error-message" role="alert" aria-live="polite"></div>
+                
+                <button type="submit" class="login-button" id="login-button">
+                    <span class="button-text">Log In</span>
+                    <span class="button-loader" style="display: none;">Logging in...</span>
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <script src="/js/login.js"></script>
+</body>
+</html>
