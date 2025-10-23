@@ -24,6 +24,8 @@
     "imageUrl": "",
     "order": 0,
     "active": true,
-    "visualType": "none"
+    "visualType": "icon",
+    "iconId": "7861867",
+    "iconUrl": "https://static.thenounproject.com/png/7861867-200.png"
   }
 ]

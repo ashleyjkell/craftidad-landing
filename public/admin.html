@@ -82,10 +82,12 @@
                                 <button type="button" id="icon-search-btn" class="btn btn-secondary">Search</button>
                             </div>
                             <div id="icon-search-results" class="icon-search-results"></div>
-                            <input type="hidden" id="selected-icon-id" name="iconId">
-                            <input type="hidden" id="selected-icon-url" name="iconUrl">
                             <div id="selected-icon-preview" class="selected-icon-preview"></div>
                         </div>
+
+                        <!-- Hidden inputs for icon data - kept outside icon-search-group to ensure they're always submitted -->
+                        <input type="hidden" id="selected-icon-id" name="iconId">
+                        <input type="hidden" id="selected-icon-url" name="iconUrl">
 
                         <div class="form-actions">
                             <button type="submit" id="submit-btn" class="btn btn-primary">Add Link</button>

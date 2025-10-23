@@ -194,8 +194,19 @@ async function handleLinkFormSubmit(event) {
     const url = document.getElementById('link-url').value.trim();
     const visualType = document.getElementById('visual-type').value;
     const imageUrl = document.getElementById('link-image').value.trim();
-    const iconId = document.getElementById('selected-icon-id').value;
-    const iconUrl = document.getElementById('selected-icon-url').value;
+    const iconId = document.getElementById('selected-icon-id').value.trim();
+    const iconUrl = document.getElementById('selected-icon-url').value.trim();
+
+    console.log('Form submission - Raw values:', {
+        visualType,
+        iconId,
+        iconUrl,
+        selectedIcon,
+        hiddenInputValues: {
+            iconIdElement: document.getElementById('selected-icon-id').value,
+            iconUrlElement: document.getElementById('selected-icon-url').value
+        }
+    });
 
     // Client-side URL validation
     if (!isValidURL(url)) {
@@ -218,6 +229,10 @@ async function handleLinkFormSubmit(event) {
             showMessage('link-form-message', 'Please select an icon or choose a different visual type', 'error');
             return;
         }
+        // Additional validation: verify selectedIcon object matches hidden inputs
+        if (selectedIcon && (selectedIcon.id !== iconId || selectedIcon.url !== iconUrl)) {
+            console.warn('Icon data mismatch detected, using hidden input values');
+        }
     }
 
     const linkData = {
@@ -228,6 +243,8 @@ async function handleLinkFormSubmit(event) {
         iconId: visualType === 'icon' ? iconId : '',
         iconUrl: visualType === 'icon' ? iconUrl : ''
     };
+
+    console.log('Submitting link data:', linkData);
 
     setLinkFormLoading(true);
 
@@ -263,7 +280,8 @@ async function handleLinkFormSubmit(event) {
             throw new Error(errorData.error || 'Failed to save link');
         }
 
-        await response.json();
+        const savedLink = await response.json();
+        console.log('Link saved successfully:', savedLink);
 
         // Show success message
         showMessage('link-form-message', linkId ? 'Link updated successfully!' : 'Link added successfully!', 'success');
@@ -306,6 +324,8 @@ async function editLink(linkId) {
             return;
         }
 
+        console.log('Editing link:', link);
+
         // Populate form with link data
         document.getElementById('link-id').value = link.id;
         document.getElementById('link-label').value = link.label;
@@ -313,12 +333,9 @@ async function editLink(linkId) {
 
         // Handle visual type
         const visualType = link.visualType || (link.imageUrl ? 'image' : 'none');
-        handleVisualTypeChange(visualType);
-
-        if (visualType === 'image') {
-            document.getElementById('link-image').value = link.imageUrl || '';
-        } else if (visualType === 'icon' && link.iconId && link.iconUrl) {
-            // Restore icon selection
+        
+        // First, restore icon data if it exists (before calling handleVisualTypeChange)
+        if (link.iconId && link.iconUrl) {
             selectedIcon = {
                 id: link.iconId,
                 url: link.iconUrl,
@@ -326,8 +343,34 @@ async function editLink(linkId) {
             };
             document.getElementById('selected-icon-id').value = link.iconId;
             document.getElementById('selected-icon-url').value = link.iconUrl;
+            console.log('Restored icon selection:', selectedIcon);
+        }
 
-            // Show preview
+        // Now handle visual type change
+        handleVisualTypeChange(visualType);
+
+        // Verify icon data persisted after visual type change
+        if (link.iconId && link.iconUrl) {
+            console.log('After handleVisualTypeChange - Hidden inputs:', {
+                iconId: document.getElementById('selected-icon-id').value,
+                iconUrl: document.getElementById('selected-icon-url').value
+            });
+            
+            // Re-set the values if they were cleared
+            if (!document.getElementById('selected-icon-id').value) {
+                console.warn('Icon ID was cleared, restoring...');
+                document.getElementById('selected-icon-id').value = link.iconId;
+            }
+            if (!document.getElementById('selected-icon-url').value) {
+                console.warn('Icon URL was cleared, restoring...');
+                document.getElementById('selected-icon-url').value = link.iconUrl;
+            }
+        }
+
+        if (visualType === 'image') {
+            document.getElementById('link-image').value = link.imageUrl || '';
+        } else if (visualType === 'icon' && link.iconId && link.iconUrl) {
+            // Show preview (data is already set above)
             const previewContainer = document.getElementById('selected-icon-preview');
             previewContainer.innerHTML = `
                 <img src="${escapeHtml(link.iconUrl)}" alt="${escapeHtml(link.label)}">
@@ -401,9 +444,11 @@ function resetLinkForm() {
     document.getElementById('cancel-btn').style.display = 'none';
     currentEditingLinkId = null;
 
+    // Clear icon selection completely on reset
+    clearIconSelection();
+    
     // Reset visual type to 'none'
     handleVisualTypeChange('none');
-    clearIconSelection();
 }
 
 /**
@@ -418,6 +463,8 @@ function handleCancelEdit() {
 // ============================================
 
 let selectedIcon = null;
+let iconSearchTimeout = null;
+const ICON_SEARCH_DEBOUNCE_MS = 300;
 
 /**
  * Handle visual type button clicks
@@ -445,16 +492,17 @@ function handleVisualTypeChange(type) {
     if (type === 'image') {
         imageUrlGroup.style.display = 'block';
         iconSearchGroup.style.display = 'none';
-        clearIconSelection();
+        // Don't clear icon selection - preserve it in case user switches back
     } else if (type === 'icon') {
         imageUrlGroup.style.display = 'none';
         iconSearchGroup.style.display = 'block';
         document.getElementById('link-image').value = '';
+        // Icon selection is preserved if it exists
     } else {
         imageUrlGroup.style.display = 'none';
         iconSearchGroup.style.display = 'none';
         document.getElementById('link-image').value = '';
-        clearIconSelection();
+        // Don't clear icon selection - preserve it in case user switches back
     }
 }
 
@@ -471,6 +519,36 @@ function clearIconSelection() {
 }
 
 /**
+ * Handle icon search input with debouncing
+ */
+function handleIconSearchInput() {
+    // Clear existing timeout
+    if (iconSearchTimeout) {
+        clearTimeout(iconSearchTimeout);
+    }
+    
+    const searchInput = document.getElementById('icon-search');
+    const query = searchInput.value.trim();
+    
+    // Clear results if empty
+    if (!query) {
+        const resultsContainer = document.getElementById('icon-search-results');
+        resultsContainer.innerHTML = '';
+        return;
+    }
+    
+    // Only search if at least 1 character
+    if (query.length < 1) {
+        return;
+    }
+    
+    // Set new timeout
+    iconSearchTimeout = setTimeout(() => {
+        searchIcons();
+    }, ICON_SEARCH_DEBOUNCE_MS);
+}
+
+/**
  * Search for icons using The Noun Project API
  */
 async function searchIcons() {
@@ -478,7 +556,6 @@ async function searchIcons() {
     const query = searchInput.value.trim();
 
     if (!query) {
-        showMessage('link-form-message', 'Please enter a search term', 'error');
         return;
     }
 
@@ -525,12 +602,30 @@ function displayIconResults(icons) {
         return;
     }
 
-    resultsContainer.innerHTML = icons.map(icon => `
-        <div class="icon-result-item" data-icon-id="${icon.id}" data-icon-url="${escapeHtml(icon.previewUrl)}" data-icon-term="${escapeHtml(icon.term)}">
-            <img src="${escapeHtml(icon.thumbnailUrl || icon.previewUrl)}" alt="${escapeHtml(icon.term)}">
-            <div class="icon-term">${escapeHtml(icon.term)}</div>
-        </div>
-    `).join('');
+    resultsContainer.innerHTML = icons
+        .filter(icon => {
+            // Filter out icons without preview URLs
+            if (!icon.previewUrl) {
+                console.warn('Skipping icon without preview URL:', icon);
+                return false;
+            }
+            return true;
+        })
+        .map(icon => {
+            // Log icon data for debugging
+            console.log('Rendering icon:', { id: icon.id, term: icon.term, previewUrl: icon.previewUrl });
+            
+            // For data attributes, we need to escape quotes but not convert to HTML entities
+            const safeIconUrl = (icon.previewUrl || '').replace(/"/g, '&quot;');
+            const safeIconTerm = (icon.term || '').replace(/"/g, '&quot;');
+            
+            return `
+                <div class="icon-result-item" data-icon-id="${icon.id}" data-icon-url="${safeIconUrl}" data-icon-term="${safeIconTerm}">
+                    <img src="${escapeHtml(icon.thumbnailUrl || icon.previewUrl)}" alt="${escapeHtml(icon.term)}">
+                    <div class="icon-term">${escapeHtml(icon.term)}</div>
+                </div>
+            `;
+        }).join('');
 
     // Add click handlers to icon items
     document.querySelectorAll('.icon-result-item').forEach(item => {
@@ -547,6 +642,15 @@ function selectIcon(iconElement) {
     const iconUrl = iconElement.dataset.iconUrl;
     const iconTerm = iconElement.dataset.iconTerm;
 
+    console.log('selectIcon called with:', { iconId, iconUrl, iconTerm });
+
+    // Validate that we have the required data
+    if (!iconId || !iconUrl) {
+        console.error('Invalid icon data:', { iconId, iconUrl, iconTerm });
+        showMessage('link-form-message', 'Error: Icon data is incomplete. Please try selecting a different icon.', 'error');
+        return;
+    }
+
     // Update selected icon
     selectedIcon = {
         id: iconId,
@@ -557,6 +661,12 @@ function selectIcon(iconElement) {
     // Update hidden inputs
     document.getElementById('selected-icon-id').value = iconId;
     document.getElementById('selected-icon-url').value = iconUrl;
+
+    console.log('Icon selected:', selectedIcon);
+    console.log('Hidden inputs updated:', {
+        iconId: document.getElementById('selected-icon-id').value,
+        iconUrl: document.getElementById('selected-icon-url').value
+    });
 
     // Update visual selection
     document.querySelectorAll('.icon-result-item').forEach(item => {
@@ -1347,8 +1457,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const iconSearchBtn = document.getElementById('icon-search-btn');
     iconSearchBtn.addEventListener('click', searchIcons);
 
-    // Allow Enter key to trigger icon search
+    // Set up real-time icon search with debouncing
     const iconSearchInput = document.getElementById('icon-search');
+    iconSearchInput.addEventListener('input', handleIconSearchInput);
+
+    // Allow Enter key to trigger icon search
     iconSearchInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             e.preventDefault();

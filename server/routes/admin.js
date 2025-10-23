@@ -732,15 +732,41 @@ router.get('/icons/search', async (req, res) => {
 
     const data = await response.json();
 
+    // Log first icon to debug what fields are available
+    if (data.icons && data.icons.length > 0) {
+      console.log('Sample icon from API:', JSON.stringify(data.icons[0], null, 2));
+    }
+
     // Transform the response to include preview URLs
-    const icons = data.icons ? data.icons.map(icon => ({
-      id: icon.id,
-      term: icon.term,
-      previewUrl: icon.preview_url || icon.preview_url_84,
-      thumbnailUrl: icon.thumbnail_url,
-      attribution: icon.attribution || `Icon by ${icon.uploader?.name || 'The Noun Project'}`,
-      tags: icon.tags || []
-    })) : [];
+    const icons = data.icons ? data.icons.map(icon => {
+      // The Noun Project API v2 returns thumbnail_url as the primary image URL
+      // Try multiple possible URL fields as fallback
+      const previewUrl = icon.thumbnail_url || 
+                        icon.preview_url_200 || 
+                        icon.preview_url_84 || 
+                        icon.preview_url_42 || 
+                        icon.preview_url || 
+                        icon.icon_url || 
+                        '';
+      
+      const thumbnailUrl = icon.thumbnail_url || 
+                          icon.preview_url_84 || 
+                          icon.preview_url_42 || 
+                          previewUrl;
+      
+      if (!previewUrl) {
+        console.warn(`Icon ${icon.id} (${icon.term}) has no URL. Available fields:`, Object.keys(icon));
+      }
+      
+      return {
+        id: icon.id,
+        term: icon.term,
+        previewUrl: previewUrl,
+        thumbnailUrl: thumbnailUrl,
+        attribution: icon.attribution || `Icon by ${icon.uploader?.name || 'The Noun Project'}`,
+        tags: icon.tags || []
+      };
+    }) : [];
 
     res.json({
       success: true,
