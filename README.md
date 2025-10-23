@@ -20,7 +20,22 @@ The setup script will:
 - Create the `data/` directory if it doesn't exist
 - Generate `links.json` with sample links (GitHub, Twitter, LinkedIn)
 - Generate `theme.json` with default theme settings
+- Generate `profile.json` with default profile information
 - Prompt you to create admin credentials (default: username=admin, password=admin123)
+- Prompt you to configure The Noun Project API credentials (optional)
+- Generate `config.json` for API configuration
+
+**The Noun Project API Setup (Optional)**
+
+During setup, you'll be prompted to enter API credentials for The Noun Project. This enables icon selection features in the admin panel.
+
+To get API credentials:
+1. Visit https://thenounproject.com/developers/
+2. Create an account or sign in
+3. Create a new app to get your API key and secret
+4. Enter these credentials when prompted during setup
+
+You can skip this step and configure it later from the admin panel if needed.
 
 3. Start the server:
 ```bash
@@ -66,6 +81,8 @@ If you used the default values during setup:
   - `links.json` - Link collection data
   - `theme.json` - Theme customization settings
   - `auth.json` - Admin credentials (bcrypt hashed)
+  - `profile.json` - Profile photo and bio information
+  - `config.json` - API keys and configuration settings
 
 ## Features
 
@@ -110,11 +127,29 @@ Example:
 PORT=8080 SESSION_SECRET=your-secret-key npm start
 ```
 
+### Reconfiguring API Keys
+
+If you need to add or update The Noun Project API credentials after initial setup:
+
+1. **Option 1: Through Admin Panel** (when implemented)
+   - Log in to the admin panel
+   - Navigate to the configuration section
+   - Enter your API key and secret
+
+2. **Option 2: Manual Configuration**
+   - Edit `data/config.json` directly
+   - Add your `nounProjectApiKey` and `nounProjectApiSecret`
+   - Restart the server
+
+3. **Option 3: Re-run Setup**
+   - Run `npm run setup` again
+   - This will recreate all data files (backup existing data first!)
+
 ### Data Backup
 
-The `data/` directory contains all your links, theme settings, and credentials. Make sure to:
+The `data/` directory contains all your links, theme settings, credentials, and API keys. Make sure to:
 - Back up this directory regularly
-- Keep `auth.json` secure and never commit it to version control
+- Keep `auth.json` and `config.json` secure and never commit them to version control
 - Add `data/` to your `.gitignore` file in production
 
 ## Security Notes

@@ -60,13 +60,15 @@ The link-sharing page system consists of two main applications: a public landing
 **Purpose**: Display the customizable link collection to visitors
 
 **Key Features**:
+- Profile info box at the top with photo and bio
 - Responsive layout with centered content
 - Background image or color support
 - Link items displayed as styled capsules
-- Each link can have an optional icon/image
+- Each link can have an optional icon (from The Noun Project) or image
 - Click tracking (optional future enhancement)
 
 **API Endpoints Used**:
+- `GET /api/profile` - Fetch profile photo and bio
 - `GET /api/links` - Fetch all active links in order
 - `GET /api/theme` - Fetch current theme settings
 
@@ -76,7 +78,10 @@ The link-sharing page system consists of two main applications: a public landing
 
 **Key Features**:
 - Login page with session management
+- Profile management (photo and bio)
 - Link management interface (CRUD operations)
+- Icon search and selection from The Noun Project API
+- Choice between custom image or icon for each link
 - Drag-and-drop reordering
 - Theme customization controls
 - Image upload/URL input for backgrounds and link buttons
@@ -85,6 +90,8 @@ The link-sharing page system consists of two main applications: a public landing
 **API Endpoints Used**:
 - `POST /api/login` - Authenticate admin
 - `POST /api/logout` - End session
+- `GET /api/admin/profile` - Fetch profile data
+- `PUT /api/admin/profile` - Update profile photo and bio
 - `GET /api/admin/links` - Fetch all links for editing
 - `POST /api/admin/links` - Create new link
 - `PUT /api/admin/links/:id` - Update existing link
@@ -92,6 +99,9 @@ The link-sharing page system consists of two main applications: a public landing
 - `PUT /api/admin/links/reorder` - Update link order
 - `GET /api/admin/theme` - Fetch theme settings
 - `PUT /api/admin/theme` - Update theme settings
+- `GET /api/admin/icons/search?query=` - Search The Noun Project for icons
+- `GET /api/admin/config` - Fetch API configuration status
+- `PUT /api/admin/config` - Update API keys
 
 ### 3. Express API Server
 
@@ -115,6 +125,8 @@ The link-sharing page system consists of two main applications: a public landing
 - `data/links.json` - Array of link objects
 - `data/theme.json` - Theme configuration object
 - `data/auth.json` - Hashed admin credentials
+- `data/profile.json` - Profile photo and bio
+- `data/config.json` - API keys and configuration
 
 ## Data Models
 
@@ -125,7 +137,10 @@ The link-sharing page system consists of two main applications: a public landing
   "id": "string (UUID)",
   "label": "string",
   "url": "string (validated URL)",
-  "imageUrl": "string (optional)",
+  "visualType": "string (enum: 'image' | 'icon' | 'none')",
+  "imageUrl": "string (optional, used when visualType is 'image')",
+  "iconId": "string (optional, The Noun Project icon ID)",
+  "iconUrl": "string (optional, cached icon URL)",
   "order": "number",
   "active": "boolean"
 }
@@ -140,6 +155,24 @@ The link-sharing page system consists of two main applications: a public landing
   "textColor": "string (hex color)",
   "buttonColor": "string (hex color)",
   "buttonTextColor": "string (hex color)"
+}
+```
+
+### Profile
+
+```json
+{
+  "photoUrl": "string (optional)",
+  "bio": "string (max 500 characters)"
+}
+```
+
+### Configuration
+
+```json
+{
+  "nounProjectApiKey": "string (optional)",
+  "nounProjectApiSecret": "string (optional)"
 }
 ```
 
@@ -194,6 +227,27 @@ Given the requirement to keep testing minimal, focus on:
    - Integration tests for API endpoints
    - E2E tests for critical user flows
 
+## The Noun Project API Integration
+
+### Authentication
+The Noun Project API uses OAuth 1.0 authentication. For simplicity, we'll use the API key and secret for server-side requests.
+
+### Icon Search Flow
+1. Admin enters search term in the admin panel
+2. Frontend sends request to backend proxy endpoint
+3. Backend makes authenticated request to The Noun Project API
+4. Backend returns icon results with preview URLs
+5. Admin selects an icon
+6. Icon ID and URL are stored with the link
+
+### API Endpoints Used
+- `GET /v2/icon?query={term}&limit=20` - Search for icons
+- Icons are returned with preview URLs that can be cached
+
+### Caching Strategy
+- Store icon URLs with links to avoid repeated API calls
+- Icons are served directly from The Noun Project CDN on the landing page
+
 ## Security Considerations
 
 - Password hashing with bcrypt (minimum 10 rounds)
@@ -202,6 +256,8 @@ Given the requirement to keep testing minimal, focus on:
 - Input validation and sanitization
 - Rate limiting on login endpoint
 - HTTPS enforcement in production
+- API keys stored securely in config.json (not exposed to frontend)
+- The Noun Project API requests proxied through backend
 
 ## Deployment
 
@@ -245,7 +301,9 @@ link-sharing-page/
 ├── data/
 │   ├── links.json
 │   ├── theme.json
-│   └── auth.json
+│   ├── auth.json
+│   ├── profile.json
+│   └── config.json
 ├── package.json
 └── README.md
 ```

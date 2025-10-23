@@ -7,6 +7,8 @@ const DATA_DIR = path.join(__dirname, '../../data');
 const LINKS_FILE = path.join(DATA_DIR, 'links.json');
 const THEME_FILE = path.join(DATA_DIR, 'theme.json');
 const AUTH_FILE = path.join(DATA_DIR, 'auth.json');
+const PROFILE_FILE = path.join(DATA_DIR, 'profile.json');
+const CONFIG_FILE = path.join(DATA_DIR, 'config.json');
 
 /**
  * Generate a UUID v4
@@ -102,6 +104,84 @@ async function writeAuth(auth) {
   return await writeJSONFile(AUTH_FILE, auth);
 }
 
+/**
+ * Read profile data from profile.json
+ * @returns {Promise<Object>} Profile object with photoUrl and bio
+ */
+async function readProfile() {
+  return await readJSONFile(PROFILE_FILE);
+}
+
+/**
+ * Write profile data to profile.json
+ * @param {Object} profile - Profile object with photoUrl and bio
+ * @returns {Promise<void>}
+ */
+async function writeProfile(profile) {
+  return await writeJSONFile(PROFILE_FILE, profile);
+}
+
+/**
+ * Read configuration data from config.json
+ * @returns {Promise<Object>} Config object with API keys
+ */
+async function readConfig() {
+  return await readJSONFile(CONFIG_FILE);
+}
+
+/**
+ * Write configuration data to config.json
+ * @param {Object} config - Config object with API keys
+ * @returns {Promise<void>}
+ */
+async function writeConfig(config) {
+  return await writeJSONFile(CONFIG_FILE, config);
+}
+
+/**
+ * Migrate existing links to include visualType field
+ * This ensures backward compatibility with links created before the visualType field was added
+ * @returns {Promise<void>}
+ */
+async function migrateLinks() {
+  try {
+    const links = await readLinks();
+    let migrated = false;
+
+    const updatedLinks = links.map(link => {
+      // Check if link already has visualType field
+      if (link.visualType) {
+        return link;
+      }
+
+      // Migration needed
+      migrated = true;
+
+      // Set default visualType based on imageUrl presence
+      if (link.imageUrl && link.imageUrl.trim() !== '') {
+        return {
+          ...link,
+          visualType: 'image'
+        };
+      } else {
+        return {
+          ...link,
+          visualType: 'none'
+        };
+      }
+    });
+
+    // Only write if migration was needed
+    if (migrated) {
+      await writeLinks(updatedLinks);
+      console.log('Links migration completed: visualType field added to existing links');
+    }
+  } catch (error) {
+    console.error('Error during links migration:', error.message);
+    // Don't throw - allow server to start even if migration fails
+  }
+}
+
 module.exports = {
   generateUUID,
   readJSONFile,
@@ -111,5 +191,10 @@ module.exports = {
   readTheme,
   writeTheme,
   readAuth,
-  writeAuth
+  writeAuth,
+  readProfile,
+  writeProfile,
+  readConfig,
+  writeConfig,
+  migrateLinks
 };

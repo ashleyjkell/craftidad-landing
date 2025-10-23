@@ -3,6 +3,7 @@
     'use strict';
 
     const linksContainer = document.getElementById('links-container');
+    const profileContainer = document.getElementById('profile-container');
     const backgroundOverlay = document.querySelector('.background-overlay');
 
     /**
@@ -36,6 +37,27 @@
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
+
+    /**
+     * Fetch and display profile info
+     */
+    async function loadProfile() {
+        try {
+            const response = await fetch('/api/profile');
+
+            if (!response.ok) {
+                throw new Error('Failed to load profile');
+            }
+
+            const profile = await response.json();
+            displayProfile(profile);
+        } catch (error) {
+            console.error('Error loading profile:', error);
+            // Profile is optional, so we don't show an error to the user
+            // Just hide the profile container
+            profileContainer.style.display = 'none';
+        }
     }
 
     /**
@@ -77,6 +99,35 @@
     }
 
     /**
+     * Display profile info on the page
+     * @param {Object} profile - Profile object with photoUrl and bio
+     */
+    function displayProfile(profile) {
+        // Check if profile has any data
+        const hasPhoto = profile.photoUrl && profile.photoUrl.trim() !== '';
+        const hasBio = profile.bio && profile.bio.trim() !== '';
+
+        if (!hasPhoto && !hasBio) {
+            // Hide profile container if no data
+            profileContainer.style.display = 'none';
+            return;
+        }
+
+        // Build profile HTML
+        let profileHtml = '';
+
+        if (hasPhoto) {
+            profileHtml += `<img src="${escapeHtml(profile.photoUrl)}" alt="Profile photo" class="profile-photo" onerror="this.style.display='none'">`;
+        }
+
+        if (hasBio) {
+            profileHtml += `<p class="profile-bio">${escapeHtml(profile.bio)}</p>`;
+        }
+
+        profileContainer.innerHTML = profileHtml;
+    }
+
+    /**
      * Display links on the page
      * @param {Array} links - Array of link objects
      */
@@ -93,19 +144,28 @@
 
         // Create link elements
         linksContainer.innerHTML = activeLinks.map(link => {
-            const hasImage = link.imageUrl && link.imageUrl.trim() !== '';
-            const imageClass = hasImage ? ' has-image' : '';
-            const imageHtml = hasImage 
-                ? `<img src="${escapeHtml(link.imageUrl)}" alt="" class="link-image" onerror="this.style.display='none'">` 
-                : '';
+            // Determine visual type (default to 'none' if not specified)
+            const visualType = link.visualType || 'none';
+            
+            let visualHtml = '';
+            let visualClass = '';
+
+            // Handle different visual types
+            if (visualType === 'image' && link.imageUrl && link.imageUrl.trim() !== '') {
+                visualHtml = `<img src="${escapeHtml(link.imageUrl)}" alt="" class="link-image" onerror="this.style.display='none'">`;
+                visualClass = ' has-image';
+            } else if (visualType === 'icon' && link.iconUrl && link.iconUrl.trim() !== '') {
+                visualHtml = `<img src="${escapeHtml(link.iconUrl)}" alt="" class="link-icon" onerror="this.style.display='none'">`;
+                visualClass = ' has-icon';
+            }
 
             return `
                 <a href="${escapeHtml(link.url)}" 
-                   class="link-item${imageClass}" 
+                   class="link-item${visualClass}" 
                    target="_blank" 
                    rel="noopener noreferrer"
                    role="listitem">
-                    ${imageHtml}
+                    ${visualHtml}
                     <span class="link-label">${escapeHtml(link.label)}</span>
                 </a>
             `;
@@ -156,9 +216,10 @@
     async function init() {
         showLoading();
         
-        // Load theme and links in parallel
+        // Load theme, profile, and links in parallel
         await Promise.all([
             loadTheme(),
+            loadProfile(),
             loadLinks()
         ]);
     }

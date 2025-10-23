@@ -73,6 +73,45 @@ function createDefaultTheme() {
   console.log('✓ Created theme.json with default settings');
 }
 
+// Create default profile.json
+function createDefaultProfile() {
+  const profilePath = path.join(DATA_DIR, 'profile.json');
+  const defaultProfile = {
+    photoUrl: '',
+    bio: 'Welcome to my link sharing page! Find all my important links below.'
+  };
+
+  fs.writeFileSync(profilePath, JSON.stringify(defaultProfile, null, 2));
+  console.log('✓ Created profile.json with default profile');
+}
+
+// Create config.json with API keys
+async function createConfig() {
+  const configPath = path.join(DATA_DIR, 'config.json');
+  
+  console.log('\n--- The Noun Project API Configuration (Optional) ---');
+  console.log('To enable icon selection features, you need API credentials from The Noun Project.');
+  console.log('Visit https://thenounproject.com/developers/ to get your API key and secret.');
+  console.log('You can skip this step and configure it later from the admin panel.\n');
+  
+  const apiKey = await question('Enter The Noun Project API key (or press Enter to skip): ');
+  const apiSecret = await question('Enter The Noun Project API secret (or press Enter to skip): ');
+
+  const configData = {
+    nounProjectApiKey: apiKey.trim() || '',
+    nounProjectApiSecret: apiSecret.trim() || ''
+  };
+
+  fs.writeFileSync(configPath, JSON.stringify(configData, null, 2));
+  
+  if (apiKey.trim() && apiSecret.trim()) {
+    console.log('✓ Created config.json with API credentials');
+  } else {
+    console.log('✓ Created config.json (API credentials not configured)');
+    console.log('  You can add them later from the admin panel');
+  }
+}
+
 // Create auth.json with admin credentials
 async function createAdminCredentials() {
   const authPath = path.join(DATA_DIR, 'auth.json');
@@ -106,7 +145,9 @@ async function setup() {
     ensureDataDirectory();
     createDefaultLinks();
     createDefaultTheme();
+    createDefaultProfile();
     await createAdminCredentials();
+    await createConfig();
 
     console.log('\n✓ Setup complete!');
     console.log('\nNext steps:');

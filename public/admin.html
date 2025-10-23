@@ -14,6 +14,32 @@
         </header>
 
         <main class="admin-main">
+            <!-- Profile Management Section -->
+            <section class="admin-section profile-management">
+                <h2>Profile Management</h2>
+                
+                <form id="profile-form">
+                    <div class="form-group">
+                        <label for="profile-photo">Profile Photo URL</label>
+                        <input type="url" id="profile-photo" name="photoUrl" placeholder="https://example.com/photo.jpg">
+                        <small class="form-help">Enter a URL to an image for your profile photo</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="profile-bio">Bio</label>
+                        <textarea id="profile-bio" name="bio" rows="4" maxlength="500" placeholder="Tell visitors about yourself..."></textarea>
+                        <div class="character-counter">
+                            <span id="bio-char-count">0</span> / 500 characters
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Save Profile</button>
+                    </div>
+                </form>
+                <div id="profile-message" class="message"></div>
+            </section>
+
             <!-- Link Management Section -->
             <section class="admin-section link-management">
                 <h2>Link Management</h2>
@@ -35,8 +61,30 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="link-image">Button Image URL (optional)</label>
+                            <label>Button Visual Type</label>
+                            <div class="visual-type-selector">
+                                <button type="button" class="visual-type-btn active" data-type="none">None</button>
+                                <button type="button" class="visual-type-btn" data-type="image">Image URL</button>
+                                <button type="button" class="visual-type-btn" data-type="icon">Icon Search</button>
+                            </div>
+                            <input type="hidden" id="visual-type" name="visualType" value="none">
+                        </div>
+
+                        <div class="form-group" id="image-url-group" style="display: none;">
+                            <label for="link-image">Button Image URL</label>
                             <input type="url" id="link-image" name="imageUrl" placeholder="https://example.com/icon.png">
+                        </div>
+
+                        <div class="form-group" id="icon-search-group" style="display: none;">
+                            <label for="icon-search">Search Icons</label>
+                            <div class="icon-search-container">
+                                <input type="text" id="icon-search" placeholder="Search for icons (e.g., home, user, email)">
+                                <button type="button" id="icon-search-btn" class="btn btn-secondary">Search</button>
+                            </div>
+                            <div id="icon-search-results" class="icon-search-results"></div>
+                            <input type="hidden" id="selected-icon-id" name="iconId">
+                            <input type="hidden" id="selected-icon-url" name="iconUrl">
+                            <div id="selected-icon-preview" class="selected-icon-preview"></div>
                         </div>
 
                         <div class="form-actions">
@@ -104,6 +152,33 @@
                     </div>
                 </form>
                 <div id="theme-message" class="message"></div>
+            </section>
+
+            <!-- API Configuration Section -->
+            <section class="admin-section api-configuration">
+                <h2>API Configuration</h2>
+                <p class="section-description">Configure The Noun Project API to enable icon search functionality for your links.</p>
+                
+                <div id="config-status" class="config-status"></div>
+                
+                <form id="config-form">
+                    <div class="form-group">
+                        <label for="noun-project-api-key">The Noun Project API Key</label>
+                        <input type="text" id="noun-project-api-key" name="nounProjectApiKey" placeholder="Enter your API key">
+                        <small class="form-help">Get your API credentials at <a href="https://thenounproject.com/developers/" target="_blank" rel="noopener noreferrer">thenounproject.com/developers</a></small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="noun-project-api-secret">The Noun Project API Secret</label>
+                        <input type="password" id="noun-project-api-secret" name="nounProjectApiSecret" placeholder="Enter your API secret">
+                        <small class="form-help">Your API secret will be stored securely</small>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Save Configuration</button>
+                    </div>
+                </form>
+                <div id="config-message" class="message"></div>
             </section>
         </main>
     </div>

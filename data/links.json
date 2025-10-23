@@ -5,7 +5,8 @@
     "url": "https://github.com",
     "imageUrl": "",
     "order": 2,
-    "active": true
+    "active": true,
+    "visualType": "none"
   },
   {
     "id": "link-2",
@@ -13,7 +14,8 @@
     "url": "https://twitter.com",
     "imageUrl": "",
     "order": 1,
-    "active": true
+    "active": true,
+    "visualType": "none"
   },
   {
     "id": "link-3",
@@ -21,6 +23,7 @@
     "url": "https://linkedin.com",
     "imageUrl": "",
     "order": 0,
-    "active": true
+    "active": true,
+    "visualType": "none"
   }
 ]

@@ -117,23 +117,34 @@ function displayLinks(links) {
     // Sort links by order
     const sortedLinks = [...links].sort((a, b) => a.order - b.order);
 
-    linksListEl.innerHTML = sortedLinks.map(link => `
-    <div class="link-item" data-id="${link.id}" draggable="true">
-      <div class="drag-handle" title="Drag to reorder">⋮⋮</div>
-      <div class="link-info">
-        <div class="link-label">${escapeHtml(link.label)}</div>
-        <div class="link-url">${escapeHtml(link.url)}</div>
-        ${link.imageUrl ? `<div class="link-image-url">Image: ${escapeHtml(link.imageUrl)}</div>` : ''}
-        <div class="link-status ${link.active ? 'active' : 'inactive'}">
-          ${link.active ? 'Active' : 'Inactive'}
+    linksListEl.innerHTML = sortedLinks.map(link => {
+        const visualType = link.visualType || (link.imageUrl ? 'image' : 'none');
+        let visualInfo = '';
+        
+        if (visualType === 'image' && link.imageUrl) {
+            visualInfo = `<div class="link-image-url">Image: ${escapeHtml(link.imageUrl)}</div>`;
+        } else if (visualType === 'icon' && link.iconUrl) {
+            visualInfo = `<div class="link-image-url">Icon: ${escapeHtml(link.iconUrl)}</div>`;
+        }
+
+        return `
+        <div class="link-item" data-id="${link.id}" draggable="true">
+          <div class="drag-handle" title="Drag to reorder">⋮⋮</div>
+          <div class="link-info">
+            <div class="link-label">${escapeHtml(link.label)}</div>
+            <div class="link-url">${escapeHtml(link.url)}</div>
+            ${visualInfo}
+            <div class="link-status ${link.active ? 'active' : 'inactive'}">
+              ${link.active ? 'Active' : 'Inactive'}
+            </div>
+          </div>
+          <div class="link-actions">
+            <button class="btn btn-small btn-edit" onclick="editLink('${link.id}')">Edit</button>
+            <button class="btn btn-small btn-delete" onclick="deleteLink('${link.id}')">Delete</button>
+          </div>
         </div>
-      </div>
-      <div class="link-actions">
-        <button class="btn btn-small btn-edit" onclick="editLink('${link.id}')">Edit</button>
-        <button class="btn btn-small btn-delete" onclick="deleteLink('${link.id}')">Delete</button>
-      </div>
-    </div>
-  `).join('');
+        `;
+    }).join('');
 
     // Initialize drag-and-drop after rendering
     initializeDragAndDrop();
@@ -181,7 +192,10 @@ async function handleLinkFormSubmit(event) {
     const linkId = document.getElementById('link-id').value;
     const label = document.getElementById('link-label').value.trim();
     const url = document.getElementById('link-url').value.trim();
+    const visualType = document.getElementById('visual-type').value;
     const imageUrl = document.getElementById('link-image').value.trim();
+    const iconId = document.getElementById('selected-icon-id').value;
+    const iconUrl = document.getElementById('selected-icon-url').value;
 
     // Client-side URL validation
     if (!isValidURL(url)) {
@@ -189,16 +203,30 @@ async function handleLinkFormSubmit(event) {
         return;
     }
 
-    // Validate image URL if provided
-    if (imageUrl && !isValidURL(imageUrl)) {
-        showMessage('link-form-message', 'Please enter a valid image URL starting with http:// or https://', 'error');
-        return;
+    // Validate based on visual type
+    if (visualType === 'image') {
+        if (!imageUrl) {
+            showMessage('link-form-message', 'Please enter an image URL or select a different visual type', 'error');
+            return;
+        }
+        if (!isValidURL(imageUrl)) {
+            showMessage('link-form-message', 'Please enter a valid image URL starting with http:// or https://', 'error');
+            return;
+        }
+    } else if (visualType === 'icon') {
+        if (!iconId || !iconUrl) {
+            showMessage('link-form-message', 'Please select an icon or choose a different visual type', 'error');
+            return;
+        }
     }
 
     const linkData = {
         label,
         url,
-        imageUrl
+        visualType,
+        imageUrl: visualType === 'image' ? imageUrl : '',
+        iconId: visualType === 'icon' ? iconId : '',
+        iconUrl: visualType === 'icon' ? iconUrl : ''
     };
 
     setLinkFormLoading(true);
@@ -282,7 +310,35 @@ async function editLink(linkId) {
         document.getElementById('link-id').value = link.id;
         document.getElementById('link-label').value = link.label;
         document.getElementById('link-url').value = link.url;
-        document.getElementById('link-image').value = link.imageUrl || '';
+
+        // Handle visual type
+        const visualType = link.visualType || (link.imageUrl ? 'image' : 'none');
+        handleVisualTypeChange(visualType);
+
+        if (visualType === 'image') {
+            document.getElementById('link-image').value = link.imageUrl || '';
+        } else if (visualType === 'icon' && link.iconId && link.iconUrl) {
+            // Restore icon selection
+            selectedIcon = {
+                id: link.iconId,
+                url: link.iconUrl,
+                term: link.label
+            };
+            document.getElementById('selected-icon-id').value = link.iconId;
+            document.getElementById('selected-icon-url').value = link.iconUrl;
+
+            // Show preview
+            const previewContainer = document.getElementById('selected-icon-preview');
+            previewContainer.innerHTML = `
+                <img src="${escapeHtml(link.iconUrl)}" alt="${escapeHtml(link.label)}">
+                <div class="icon-info">
+                    <div class="icon-name">Selected: ${escapeHtml(link.label)}</div>
+                    <div class="icon-attribution">From The Noun Project</div>
+                </div>
+                <button type="button" onclick="clearIconSelection()">Clear</button>
+            `;
+            previewContainer.classList.add('show');
+        }
 
         // Update form UI
         document.getElementById('form-title').textContent = 'Edit Link';
@@ -344,6 +400,10 @@ function resetLinkForm() {
     document.getElementById('submit-btn').textContent = 'Add Link';
     document.getElementById('cancel-btn').style.display = 'none';
     currentEditingLinkId = null;
+
+    // Reset visual type to 'none'
+    handleVisualTypeChange('none');
+    clearIconSelection();
 }
 
 /**
@@ -351,6 +411,170 @@ function resetLinkForm() {
  */
 function handleCancelEdit() {
     resetLinkForm();
+}
+
+// ============================================
+// Icon Selection Functionality
+// ============================================
+
+let selectedIcon = null;
+
+/**
+ * Handle visual type button clicks
+ */
+function handleVisualTypeChange(type) {
+    // Check if trying to select icon type when API is not configured
+    if (type === 'icon' && !isApiConfigured) {
+        showMessage('link-form-message', 'Icon search is not available. Please configure The Noun Project API in the API Configuration section below.', 'error');
+        return;
+    }
+
+    // Update active button
+    document.querySelectorAll('.visual-type-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelector(`[data-type="${type}"]`).classList.add('active');
+
+    // Update hidden input
+    document.getElementById('visual-type').value = type;
+
+    // Show/hide appropriate input groups
+    const imageUrlGroup = document.getElementById('image-url-group');
+    const iconSearchGroup = document.getElementById('icon-search-group');
+
+    if (type === 'image') {
+        imageUrlGroup.style.display = 'block';
+        iconSearchGroup.style.display = 'none';
+        clearIconSelection();
+    } else if (type === 'icon') {
+        imageUrlGroup.style.display = 'none';
+        iconSearchGroup.style.display = 'block';
+        document.getElementById('link-image').value = '';
+    } else {
+        imageUrlGroup.style.display = 'none';
+        iconSearchGroup.style.display = 'none';
+        document.getElementById('link-image').value = '';
+        clearIconSelection();
+    }
+}
+
+/**
+ * Clear icon selection
+ */
+function clearIconSelection() {
+    selectedIcon = null;
+    document.getElementById('selected-icon-id').value = '';
+    document.getElementById('selected-icon-url').value = '';
+    document.getElementById('selected-icon-preview').classList.remove('show');
+    document.getElementById('icon-search-results').innerHTML = '';
+    document.getElementById('icon-search').value = '';
+}
+
+/**
+ * Search for icons using The Noun Project API
+ */
+async function searchIcons() {
+    const searchInput = document.getElementById('icon-search');
+    const query = searchInput.value.trim();
+
+    if (!query) {
+        showMessage('link-form-message', 'Please enter a search term', 'error');
+        return;
+    }
+
+    // Check if API is configured
+    if (!isApiConfigured) {
+        const resultsContainer = document.getElementById('icon-search-results');
+        resultsContainer.innerHTML = '<div class="icon-search-error">The Noun Project API is not configured. Please configure your API credentials in the API Configuration section below to enable icon search.</div>';
+        return;
+    }
+
+    const resultsContainer = document.getElementById('icon-search-results');
+    resultsContainer.innerHTML = '<div class="icon-search-loading">Searching for icons...</div>';
+
+    try {
+        const response = await fetchWithTimeout(`/api/admin/icons/search?query=${encodeURIComponent(query)}`);
+
+        if (!response.ok) {
+            if (response.status === 401) {
+                window.location.href = '/login.html';
+                return;
+            }
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to search icons');
+        }
+
+        const data = await response.json();
+        displayIconResults(data.icons);
+
+    } catch (error) {
+        console.error('Error searching icons:', error);
+        resultsContainer.innerHTML = `<div class="icon-search-error">${error.message}</div>`;
+    }
+}
+
+/**
+ * Display icon search results
+ * @param {Array} icons - Array of icon objects
+ */
+function displayIconResults(icons) {
+    const resultsContainer = document.getElementById('icon-search-results');
+
+    if (!icons || icons.length === 0) {
+        resultsContainer.innerHTML = '<div class="icon-search-empty">No icons found. Try a different search term.</div>';
+        return;
+    }
+
+    resultsContainer.innerHTML = icons.map(icon => `
+        <div class="icon-result-item" data-icon-id="${icon.id}" data-icon-url="${escapeHtml(icon.previewUrl)}" data-icon-term="${escapeHtml(icon.term)}">
+            <img src="${escapeHtml(icon.thumbnailUrl || icon.previewUrl)}" alt="${escapeHtml(icon.term)}">
+            <div class="icon-term">${escapeHtml(icon.term)}</div>
+        </div>
+    `).join('');
+
+    // Add click handlers to icon items
+    document.querySelectorAll('.icon-result-item').forEach(item => {
+        item.addEventListener('click', () => selectIcon(item));
+    });
+}
+
+/**
+ * Select an icon from search results
+ * @param {HTMLElement} iconElement - The clicked icon element
+ */
+function selectIcon(iconElement) {
+    const iconId = iconElement.dataset.iconId;
+    const iconUrl = iconElement.dataset.iconUrl;
+    const iconTerm = iconElement.dataset.iconTerm;
+
+    // Update selected icon
+    selectedIcon = {
+        id: iconId,
+        url: iconUrl,
+        term: iconTerm
+    };
+
+    // Update hidden inputs
+    document.getElementById('selected-icon-id').value = iconId;
+    document.getElementById('selected-icon-url').value = iconUrl;
+
+    // Update visual selection
+    document.querySelectorAll('.icon-result-item').forEach(item => {
+        item.classList.remove('selected');
+    });
+    iconElement.classList.add('selected');
+
+    // Show preview
+    const previewContainer = document.getElementById('selected-icon-preview');
+    previewContainer.innerHTML = `
+        <img src="${escapeHtml(iconUrl)}" alt="${escapeHtml(iconTerm)}">
+        <div class="icon-info">
+            <div class="icon-name">Selected: ${escapeHtml(iconTerm)}</div>
+            <div class="icon-attribution">From The Noun Project</div>
+        </div>
+        <button type="button" onclick="clearIconSelection()">Clear</button>
+    `;
+    previewContainer.classList.add('show');
 }
 
 // ============================================
@@ -732,6 +956,278 @@ async function handleThemeFormSubmit(event) {
 }
 
 // ============================================
+// Profile Management Functionality
+// ============================================
+
+/**
+ * Update character counter for bio field
+ */
+function updateBioCharacterCount() {
+    const bioTextarea = document.getElementById('profile-bio');
+    const charCountEl = document.getElementById('bio-char-count');
+    const counterEl = charCountEl.parentElement;
+    
+    const currentLength = bioTextarea.value.length;
+    charCountEl.textContent = currentLength;
+    
+    // Update styling based on character count
+    counterEl.classList.remove('warning', 'danger');
+    if (currentLength >= 500) {
+        counterEl.classList.add('danger');
+    } else if (currentLength >= 450) {
+        counterEl.classList.add('warning');
+    }
+}
+
+/**
+ * Load current profile data from server
+ */
+async function loadProfile() {
+    try {
+        const response = await fetchWithTimeout('/api/admin/profile');
+
+        if (!response.ok) {
+            if (response.status === 401) {
+                window.location.href = '/login.html';
+                return;
+            }
+            throw new Error('Failed to fetch profile data');
+        }
+
+        const profile = await response.json();
+        populateProfileForm(profile);
+    } catch (error) {
+        console.error('Error loading profile:', error);
+        showMessage('profile-message', error.message || 'Failed to load profile data. Please refresh the page.', 'error');
+    }
+}
+
+/**
+ * Populate profile form with current values
+ * @param {Object} profile - Profile data object
+ */
+function populateProfileForm(profile) {
+    // Profile photo URL
+    if (profile.photoUrl) {
+        document.getElementById('profile-photo').value = profile.photoUrl;
+    }
+
+    // Bio
+    if (profile.bio) {
+        document.getElementById('profile-bio').value = profile.bio;
+        updateBioCharacterCount();
+    }
+}
+
+/**
+ * Set loading state for profile form submit button
+ * @param {boolean} loading - Whether button is in loading state
+ */
+function setProfileFormLoading(loading) {
+    const submitBtn = document.querySelector('#profile-form button[type="submit"]');
+    const formInputs = document.querySelectorAll('#profile-form input, #profile-form textarea');
+    
+    if (loading) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Saving...';
+        formInputs.forEach(input => input.disabled = true);
+    } else {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Save Profile';
+        formInputs.forEach(input => input.disabled = false);
+    }
+}
+
+/**
+ * Handle profile form submission
+ */
+async function handleProfileFormSubmit(event) {
+    event.preventDefault();
+
+    // Get form values
+    const photoUrl = document.getElementById('profile-photo').value.trim();
+    const bio = document.getElementById('profile-bio').value.trim();
+
+    // Validate photo URL if provided
+    if (photoUrl && !isValidURL(photoUrl)) {
+        showMessage('profile-message', 'Please enter a valid photo URL starting with http:// or https://', 'error');
+        return;
+    }
+
+    // Validate bio length
+    if (bio.length > 500) {
+        showMessage('profile-message', 'Bio must be 500 characters or less', 'error');
+        return;
+    }
+
+    // Prepare profile data
+    const profileData = {
+        photoUrl,
+        bio
+    };
+
+    setProfileFormLoading(true);
+
+    try {
+        const response = await fetchWithTimeout('/api/admin/profile', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(profileData)
+        });
+
+        if (!response.ok) {
+            if (response.status === 401) {
+                window.location.href = '/login.html';
+                return;
+            }
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to update profile');
+        }
+
+        await response.json();
+
+        // Show success message
+        showMessage('profile-message', 'Profile updated successfully!', 'success');
+
+    } catch (error) {
+        console.error('Error updating profile:', error);
+        showMessage('profile-message', error.message || 'An error occurred. Please try again.', 'error');
+    } finally {
+        setProfileFormLoading(false);
+    }
+}
+
+// ============================================
+// API Configuration Functionality
+// ============================================
+
+let isApiConfigured = false;
+
+/**
+ * Load current configuration status from server
+ */
+async function loadConfig() {
+    try {
+        const response = await fetchWithTimeout('/api/admin/config');
+
+        if (!response.ok) {
+            if (response.status === 401) {
+                window.location.href = '/login.html';
+                return;
+            }
+            throw new Error('Failed to fetch configuration');
+        }
+
+        const config = await response.json();
+        isApiConfigured = config.nounProjectConfigured;
+        displayConfigStatus(config.nounProjectConfigured);
+    } catch (error) {
+        console.error('Error loading config:', error);
+        showMessage('config-message', error.message || 'Failed to load configuration. Please refresh the page.', 'error');
+    }
+}
+
+/**
+ * Display configuration status
+ * @param {boolean} configured - Whether API keys are configured
+ */
+function displayConfigStatus(configured) {
+    const statusEl = document.getElementById('config-status');
+    
+    if (configured) {
+        statusEl.className = 'config-status configured';
+        statusEl.innerHTML = '✓ The Noun Project API is configured. Icon search is enabled.';
+    } else {
+        statusEl.className = 'config-status not-configured';
+        statusEl.innerHTML = '<strong>⚠ API Not Configured</strong>Icon search features are currently unavailable. Please enter your API credentials below to enable icon selection for links.';
+    }
+}
+
+/**
+ * Set loading state for config form submit button
+ * @param {boolean} loading - Whether button is in loading state
+ */
+function setConfigFormLoading(loading) {
+    const submitBtn = document.querySelector('#config-form button[type="submit"]');
+    const formInputs = document.querySelectorAll('#config-form input');
+    
+    if (loading) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Saving...';
+        formInputs.forEach(input => input.disabled = true);
+    } else {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Save Configuration';
+        formInputs.forEach(input => input.disabled = false);
+    }
+}
+
+/**
+ * Handle configuration form submission
+ */
+async function handleConfigFormSubmit(event) {
+    event.preventDefault();
+
+    // Get form values
+    const apiKey = document.getElementById('noun-project-api-key').value.trim();
+    const apiSecret = document.getElementById('noun-project-api-secret').value.trim();
+
+    // Validate that both fields are provided
+    if (!apiKey || !apiSecret) {
+        showMessage('config-message', 'Both API key and secret are required', 'error');
+        return;
+    }
+
+    // Prepare config data
+    const configData = {
+        nounProjectApiKey: apiKey,
+        nounProjectApiSecret: apiSecret
+    };
+
+    setConfigFormLoading(true);
+
+    try {
+        const response = await fetchWithTimeout('/api/admin/config', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(configData)
+        });
+
+        if (!response.ok) {
+            if (response.status === 401) {
+                window.location.href = '/login.html';
+                return;
+            }
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to update configuration');
+        }
+
+        const result = await response.json();
+
+        // Update configuration status
+        isApiConfigured = result.nounProjectConfigured;
+        displayConfigStatus(result.nounProjectConfigured);
+
+        // Show success message
+        showMessage('config-message', 'Configuration updated successfully! Icon search is now enabled.', 'success');
+
+        // Clear the form fields for security
+        document.getElementById('noun-project-api-key').value = '';
+        document.getElementById('noun-project-api-secret').value = '';
+
+    } catch (error) {
+        console.error('Error updating config:', error);
+        showMessage('config-message', error.message || 'An error occurred. Please try again.', 'error');
+    } finally {
+        setConfigFormLoading(false);
+    }
+}
+
+// ============================================
 // Logout Functionality
 // ============================================
 
@@ -812,11 +1308,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
+    // Load configuration status on page load
+    loadConfig();
+
+    // Load profile on page load
+    loadProfile();
+
     // Load links on page load
     loadLinks();
 
     // Load theme on page load
     loadTheme();
+
+    // Set up profile form submission
+    const profileForm = document.getElementById('profile-form');
+    profileForm.addEventListener('submit', handleProfileFormSubmit);
+
+    // Set up bio character counter
+    const bioTextarea = document.getElementById('profile-bio');
+    bioTextarea.addEventListener('input', updateBioCharacterCount);
 
     // Set up link form submission
     const linkForm = document.getElementById('link-form');
@@ -826,9 +1336,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     const cancelBtn = document.getElementById('cancel-btn');
     cancelBtn.addEventListener('click', handleCancelEdit);
 
+    // Set up visual type selector
+    document.querySelectorAll('.visual-type-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            handleVisualTypeChange(btn.dataset.type);
+        });
+    });
+
+    // Set up icon search
+    const iconSearchBtn = document.getElementById('icon-search-btn');
+    iconSearchBtn.addEventListener('click', searchIcons);
+
+    // Allow Enter key to trigger icon search
+    const iconSearchInput = document.getElementById('icon-search');
+    iconSearchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            searchIcons();
+        }
+    });
+
     // Set up theme form submission
     const themeForm = document.getElementById('theme-form');
     themeForm.addEventListener('submit', handleThemeFormSubmit);
+
+    // Set up config form submission
+    const configForm = document.getElementById('config-form');
+    configForm.addEventListener('submit', handleConfigFormSubmit);
 
     // Set up logout button
     const logoutBtn = document.getElementById('logout-btn');

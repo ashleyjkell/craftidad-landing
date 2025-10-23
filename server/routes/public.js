@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { readLinks, readTheme } = require('../utils/storage');
+const { readLinks, readTheme, readProfile } = require('../utils/storage');
 
 /**
  * GET /api/links
@@ -69,6 +69,39 @@ router.get('/theme', async (req, res) => {
     
     res.status(500).json({ 
       error: 'Failed to fetch theme',
+      code: 'SERVER_ERROR'
+    });
+  }
+});
+
+/**
+ * GET /api/profile
+ * Returns profile photo and bio
+ */
+router.get('/profile', async (req, res) => {
+  try {
+    const profile = await readProfile();
+    res.json(profile);
+  } catch (error) {
+    console.error('Error fetching profile:', error);
+    
+    // Handle specific error cases
+    if (error.message.includes('File not found')) {
+      return res.status(500).json({ 
+        error: 'Profile data file not found',
+        code: 'FILE_NOT_FOUND'
+      });
+    }
+    
+    if (error.message.includes('Invalid JSON')) {
+      return res.status(500).json({ 
+        error: 'Profile data file is corrupted',
+        code: 'INVALID_JSON'
+      });
+    }
+    
+    res.status(500).json({ 
+      error: 'Failed to fetch profile',
       code: 'SERVER_ERROR'
     });
   }

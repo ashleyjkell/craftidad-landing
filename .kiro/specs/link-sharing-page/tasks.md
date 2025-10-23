@@ -13,15 +13,10 @@
 -
 
 - [x] 2. Implement data storage utilities
-
-
-
-
-  - Write functions to read and write JSON files (links.json, theme.json, auth.json)
+  - Write functions to read and write JSON files (links.json, theme.json, auth.json, profile.json, config.json)
   - Implement error handling for file operations
   - Create helper functions for generating UUIDs for link IDs
-  - _Requirements: 2.1, 2.2, 2.3, 4.4, 4.5_
--
+  - _Requirements: 2.1, 2.2, 2.3, 4.4, 4.5, 6.3, 6.4, 7.2_
 
 - [x] 3. Create Express server and middleware
 
@@ -35,15 +30,11 @@
   - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
 
 - [x] 4. Implement public API endpoints
-
-
-
-
-
+  - Create GET /api/profile endpoint to return profile photo and bio
   - Create GET /api/links endpoint to return active links in order
   - Create GET /api/theme endpoint to return current theme settings
   - Add error handling for missing or corrupted data files
-  - _Requirements: 1.1, 1.3, 1.5_
+  - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.7_
 
 - [x] 5. Implement authentication endpoints
 
@@ -93,7 +84,12 @@
   - Ensure proper contrast and accessibility
   - _Requirements: 1.1, 1.3, 1.4, 1.5, 1.6, 1.7_
 
-- [ ] 9. Build landing page JavaScript functionality
+- [x] 9. Build landing page JavaScript functionality
+
+
+
+
+
   - Fetch links from GET /api/links on page load
   - Fetch theme settings from GET /api/theme
   - Dynamically render link items with proper styling
@@ -182,7 +178,12 @@
 
 
 
-- [ ] 16. Implement logout functionality
+- [x] 16. Implement logout functionality
+
+
+
+
+
 
   - Add click handler to logout button
 
@@ -195,7 +196,12 @@
 
 
 
-- [ ] 17. Add authentication check and redirect logic
+- [x] 17. Add authentication check and redirect logic
+
+
+
+
+
 
   - Implement check on admin.html page load to verify authentication
   - Redirect to login page if not authenticated
@@ -204,19 +210,158 @@
   - Implement redirect from login page to admin panel if already authenticated
   - _Requirements: 5.2, 5.3_
 
-- [ ] 18. Create initial setup script
+- [x] 18. Create initial setup script
+
+
+
+
 
   - Write script to create default admin credentials
+  - Prompt for The Noun Project API key and secret during setup
   - Initialize data files with sample data
   - Document setup process in README.md
-  - _Requirements: 5.1_
+  - _Requirements: 5.1, 7.1, 7.2_
 
-- [x] 19. Add final polish and error handling
+- [x] 19. Implement profile management endpoints
 
 
 
+
+
+  - Create GET /api/admin/profile endpoint (protected)
+  - Create PUT /api/admin/profile endpoint with validation
+  - Validate profile photo URL points to valid image
+  - Enforce 500 character limit on bio
+  - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6_
+
+- [x] 20. Implement The Noun Project API integration
+
+
+
+
+
+
+
+
+
+
+  - Install OAuth library for API authentication
+  - Create GET /api/admin/icons/search endpoint (protected)
+  - Implement proxy to The Noun Project API with authentication
+  - Return icon results with preview URLs
+  - Add error handling for API failures
+  - _Requirements: 2.6, 7.3, 7.6_
+
+
+
+- [x] 21. Implement configuration management endpoints
+
+
+
+
+
+
+
+  - Create GET /api/admin/config endpoint (protected)
+  - Create PUT /api/admin/config endpoint for updating API keys
+  - Validate API key format before saving
+
+
+  - Return configuration status (whether keys are set)
+- [x] 22. Update landing page to display profile info
+
+
+
+
+
+  - _Requirements: 7.2, 7.4, 7.5_
+
+- [ ] 22. Update landing page to display profile info
+
+  - Add profile info box HTML structure at top of page
+  - Style profile photo as circular image
+  - Style bio text with proper typography
+
+  - Fetch profile data from GET /api/profile
+  - Render profile photo and bio dynamically
+  - Handle missing profile data gracefully
+  - _Requirements: 1.1, 1.2, 1.3, 1.9_
+-
+
+- [x] 23. Update landing page to support icons
+
+
+
+
+
+  - Modify link rendering to check visualType field
+  - Display icon when visualType is 'icon'
+  - Display image when visualType is 'image'
+  - Apply proper styling for icons vs images
+  - _Requirements: 1.7, 2.6_
+-
+
+- [x] 24. Add profile management to admin panel
+
+
+
+
+
+  - Add profile section to admin.html
+
+
+
+  - Create form fields for profile photo URL and bio
+  - Add character counter for bio field (500 max)
+  - Fetch current profile from GET /api/admin/profile
+  - Implement save functionality with PUT /api/admin/profile
+  - Display success/error messages
+  - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.6, 6.7_
+
+
+
+- [x] 25. Add icon selection to link management
+
+  - Add visual type selector (image/icon/none) to link form
+  - Create icon search interface with search input
+  - Implement icon search using GET /api/admin/icons/search
+  - Display icon results in a grid with preview images
+  - Allow selecting an icon and storing its ID and URL
+  - Show selected icon in link form
+  - Toggle between image URL input and icon search based on visual type
+  - _Requirements: 2.1, 2.2, 2.6, 2.7, 7.3_
+
+- [x] 26. Add API configuration to admin panel
+
+
+
+
+
+
+  - Create configuration section in admin panel
+  - Add fields for The Noun Project API key and secret
+  - Fetch current config status from GET /api/admin/config
+  - Implement save functionality with PUT /api/admin/config
+  - Display message when API keys are not configured
+  - Disable icon features when keys are missing
+  - _Requirements: 7.4, 7.5_
+
+- [x] 27. Update link data model migration
+
+
+
+
+
+
+  - Add migration logic to update existing links with visualType field
+  - Set default visualType to 'image' for links with imageUrl
+  - Set default visualType to 'none' for links without imageUrl
+  - Ensure backward compatibility
+  - _Requirements: 2.1, 2.2_
+
+- [x] 28. Add final polish and error handling
   - Ensure all error states display user-friendly messages
   - Add loading states for async operations
   - Verify responsive design works on various screen sizes
   - Test all functionality end-to-end manually
-  - _Requirements: 1.6, 1.7_
+  - _Requirements: 1.9, 1.10_

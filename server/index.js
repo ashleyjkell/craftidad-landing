@@ -1,6 +1,7 @@
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
+const { migrateLinks } = require('./utils/storage');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -34,7 +35,16 @@ app.use('/api', publicRoutes);
 app.use('/api', authRoutes);
 app.use('/api/admin', adminRoutes);
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+// Run migrations before starting server
+migrateLinks().then(() => {
+  // Start server
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+}).catch(error => {
+  console.error('Failed to run migrations:', error);
+  // Start server anyway - migration errors shouldn't prevent startup
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
 });
